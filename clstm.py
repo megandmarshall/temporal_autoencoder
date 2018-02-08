@@ -83,7 +83,7 @@ class clstm(CRNNCell):
         c, h = state
       else:
         # c and h are each batchsize x clstmshape x clstmshape x clstmfeatures
-        c, h = tf.split(3, 2, state)
+        c, h = tf.split(state, 2, 3)
       # [inputs,h] is: 2 x batchsize x clstmshape x clstmshape x clstmfeatures
 
       doclstm=1
@@ -91,10 +91,10 @@ class clstm(CRNNCell):
         concat = _convolve_linear([inputs, h], self.filter, self.features * 4, True)
         # http://colah.github.io/posts/2015-08-Understanding-LSTMs/
         # i = input_gate, j = new_input, f = forget_gate, o = output_gate (each with clstmfeatures features)
-        i, j, f, o = tf.split(3, 4, concat)
+        i, j, f, o = tf.split(concat, 4, 3)
       else:
         # work in-progress
-        incat = tf.concat(3,args)
+        incat = tf.concat(args,3)
         # general W.x + b separately for each i,j,f,o
         #i = tf.matmul(incat,weightsi) + biasesi
         #j = tf.matmul(incat,weightsj) + biasesj
@@ -111,7 +111,7 @@ class clstm(CRNNCell):
       if self._state_is_tuple:
         new_state = LSTMStateTuple(new_c, new_h)
       else:
-        new_state = tf.concat(3, [new_c, new_h])
+        new_state = tf.concat([new_c, new_h],3)
       return new_h, new_state
 
 def _convolve_linear(args, filter, features, bias, bias_start=0.0, scope=None):
@@ -153,7 +153,7 @@ def _convolve_linear(args, filter, features, bias, bias_start=0.0, scope=None):
       res = tf.nn.conv2d(args[0], mat, strides=[1, 1, 1, 1], padding='SAME')
     else:
       # first argument is batchsize x clstmshape x clstmshape x (2*clstmfeatures)
-      res = tf.nn.conv2d(tf.concat(3, args), mat, strides=[1, 1, 1, 1], padding='SAME')
+      res = tf.nn.conv2d(tf.concat(args,3), mat, strides=[1, 1, 1, 1], padding='SAME')
       # res: batchsize x clstmshape x clstmshape x (clstmfeatures*4)
     if not bias:
       return res

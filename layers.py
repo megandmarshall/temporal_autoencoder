@@ -71,7 +71,7 @@ def _variable_with_weight_decay(name, shape, stddev, wd):
   var = _variable_on_cpu(name, shape,
                          tf.truncated_normal_initializer(stddev=stddev))
   if wd:
-    weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name='weight_loss')
+    weight_decay = tf.multiply(tf.nn.l2_loss(var), wd, name='weight_loss')
     weight_decay.set_shape([])
     tf.add_to_collection('losses', weight_decay)
   return var
@@ -97,7 +97,7 @@ def dcnn2d_layer(inputs, kernel, stride, features, idx, linear = False):
     weights = _variable_with_weight_decay('weights', shape=[kernel,kernel,features,input_channels], stddev=0.01, wd=FLAGS.weight_decay)
     biases = _variable_on_cpu('biases',[features],tf.constant_initializer(0.01))
     batch_size = tf.shape(inputs)[0]
-    output_shape = tf.pack([tf.shape(inputs)[0], tf.shape(inputs)[1]*stride, tf.shape(inputs)[2]*stride, features]) 
+    output_shape = tf.stack([tf.shape(inputs)[0], tf.shape(inputs)[1]*stride, tf.shape(inputs)[2]*stride, features]) 
     dcnn = tf.nn.conv2d_transpose(inputs, weights, output_shape, strides=[1,stride,stride,1], padding='SAME')
     dcnn_biased = tf.nn.bias_add(dcnn, biases)
     if linear:
